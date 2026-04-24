@@ -1,0 +1,118 @@
+[1mdiff --git a/UI/QuanLiMonAn.cs b/UI/QuanLiMonAn.cs[m
+[1mindex 2c32e68..c82144b 100644[m
+[1m--- a/UI/QuanLiMonAn.cs[m
+[1m+++ b/UI/QuanLiMonAn.cs[m
+[36m@@ -38,6 +38,8 @@[m [mnamespace PBL3[m
+         {[m
+             InitializeComponent();[m
+             _cboTimTheo.SelectionChangeCommitted += SearchControl_Changed;[m
+[32m+[m[32m            _cboMaLoai.SelectionChangeCommitted += CboMaLoai_SelectionChangeCommitted;[m
+[32m+[m[32m            _cboMaLoai.DoubleClick += CboMaLoai_DoubleClick;[m
+             _dgvDinhMuc.DataBindingComplete += DgvDinhMuc_DataBindingComplete;[m
+             _monAnImageFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "MonAnImages");[m
+             Directory.CreateDirectory(_monAnImageFolder);[m
+[36m@@ -77,11 +79,11 @@[m [mnamespace PBL3[m
+         private void LoadMonAn()[m
+         {[m
+             const string sql = @"[m
+[31m-SELECT mb.MaMon, mb.TenMon, mb.MaLoai, lm.TenLoai, mb.MaDVT, dvt.TenDVT, mb.TrangThai[m
+[31m-FROM dbo.MON_BAN mb[m
+[31m-LEFT JOIN dbo.LOAI_MON lm ON lm.MaLoai = mb.MaLoai[m
+[31m-LEFT JOIN dbo.DON_VI_TINH dvt ON dvt.MaDVT = mb.MaDVT[m
+[31m-ORDER BY MaMon";[m
+[32m+[m[32m            SELECT mb.MaMon, mb.TenMon, mb.MaLoai, lm.TenLoai, mb.MaDVT, dvt.TenDVT, mb.TrangThai[m
+[32m+[m[32m            FROM dbo.MON_BAN mb[m
+[32m+[m[32m            LEFT JOIN dbo.LOAI_MON lm ON lm.MaLoai = mb.MaLoai[m
+[32m+[m[32m            LEFT JOIN dbo.DON_VI_TINH dvt ON dvt.MaDVT = mb.MaDVT[m
+[32m+[m[32m            ORDER BY MaMon";[m
+ [m
+             using SqlConnection conn = DbHelper.GetConnection();[m
+             using SqlDataAdapter da = new SqlDataAdapter(sql, conn);[m
+[36m@@ -92,6 +94,8 @@[m [mORDER BY MaMon";[m
+             _monAnTable = dt;[m
+             _dgvMonAn.DataSource = _monAnTable;[m
+             _dgvMonAn.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;[m
+[32m+[m[32m            _dgvMonAn.DefaultCellStyle.WrapMode = DataGridViewTriState.False;[m
+[32m+[m[32m            _dgvMonAn.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.None;[m
+ [m
+             EnsureThumbnailColumn();[m
+ [m
+[36m@@ -146,6 +150,32 @@[m [mORDER BY MaMon";[m
+             FillThumbnailValues();[m
+         }[m
+ [m
+[32m+[m[32m        private void CboMaLoai_DoubleClick(object? sender, EventArgs e)[m
+[32m+[m[32m        {[m
+[32m+[m[32m            using (QuanLiLoaiMon formLoaiMon = new QuanLiLoaiMon())[m
+[32m+[m[32m            {[m
+[32m+[m[32m                formLoaiMon.ShowDialog();[m
+[32m+[m[32m            }[m
+[32m+[m[32m            LoadLoaiMon();[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        private void CboMaLoai_SelectionChangeCommitted(object? sender, EventArgs e)[m
+[32m+[m[32m        {[m
+[32m+[m[32m            if (_cboMaLoai.SelectedValue?.ToString() == "EDIT")[m
+[32m+[m[32m            {[m
+[32m+[m[32m                using (QuanLiLoaiMon formLoaiMon = new QuanLiLoaiMon())[m
+[32m+[m[32m                {[m
+[32m+[m[32m                    formLoaiMon.ShowDialog();[m
+[32m+[m[32m                }[m
+[32m+[m[32m                LoadLoaiMon();[m
+[32m+[m
+[32m+[m[32m                if (_cboMaLoai.Items.Count > 0)[m
+[32m+[m[32m                {[m
+[32m+[m[32m                    _cboMaLoai.SelectedIndex = 0;[m
+[32m+[m[32m                }[m
+[32m+[m[32m            }[m
+[32m+[m[32m        }[m
+[32m+[m
+         private void ApplySearchFilter()[m
+         {[m
+             if (_monAnTable is null)[m
+[36m@@ -346,9 +376,9 @@[m [mORDER BY MaMon";[m
+             }[m
+ [m
+             const string sql = @"[m
+[31m-INSERT INTO dbo.MON_BAN (TenMon, MaLoai, MaDVT, TrangThai)[m
+[31m-OUTPUT INSERTED.MaMon[m
+[31m-VALUES (@TenMon, @MaLoai, @MaDVT, @TrangThai)";[m
+[32m+[m[32m            INSERT INTO dbo.MON_BAN (TenMon, MaLoai, MaDVT, TrangThai)[m
+[32m+[m[32m            OUTPUT INSERTED.MaMon[m
+[32m+[m[32m            VALUES (@TenMon, @MaLoai, @MaDVT, @TrangThai)";[m
+ [m
+             try[m
+             {[m
+[36m@@ -661,6 +691,11 @@[m [mSELECT 1 FROM dbo.CT_HOA_DON_BAN WHERE MaMon = @MaMon[m
+             DataTable dt = new DataTable();[m
+             da.Fill(dt);[m
+ [m
+[32m+[m[32m            DataRow row = dt.NewRow();[m
+[32m+[m[32m            row["MaLoai"] = "EDIT";[m
+[32m+[m[32m            row["TenLoai"] = "--- Chỉnh sửa loại món ---";[m
+[32m+[m[32m            dt.Rows.Add(row);[m
+[32m+[m
+             _cboMaLoai.DataSource = dt;[m
+             _cboMaLoai.DisplayMember = "TenLoai";[m
+             _cboMaLoai.ValueMember = "MaLoai";[m
+[36m@@ -713,6 +748,20 @@[m [mSELECT 1 FROM dbo.CT_HOA_DON_BAN WHERE MaMon = @MaMon[m
+             _dinhMucBindingSource.DataSource = _dinhMucTable;[m
+             _dgvDinhMuc!.DataSource = _dinhMucBindingSource;[m
+ [m
+[32m+[m[32m            if (_dgvGiaBan != null)[m
+[32m+[m[32m            {[m
+[32m+[m[32m                _dgvGiaBan.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;[m
+[32m+[m[32m                _dgvGiaBan.DefaultCellStyle.WrapMode = DataGridViewTriState.False;[m
+[32m+[m[32m                _dgvGiaBan.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.None;[m
+[32m+[m[32m            }[m
+[32m+[m
+[32m+[m[32m            if (_dgvDinhMuc != null)[m
+[32m+[m[32m            {[m
+[32m+[m[32m                _dgvDinhMuc.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;[m
+[32m+[m[32m                _dgvDinhMuc.DefaultCellStyle.WrapMode = DataGridViewTriState.False;[m
+[32m+[m[32m                _dgvDinhMuc.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.None;[m
+[32m+[m[32m            }[m
+[32m+[m
+             ConfigureGiaBanGridColumns();[m
+             ConfigureDinhMucGridColumns();[m
+ [m
