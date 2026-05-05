@@ -65,7 +65,7 @@ namespace PBL3.DataBase
         {
             using (SqlConnection conn = GetConnection())
             {
-                SqlDataAdapter da = new SqlDataAdapter(sql, conn);
+                using SqlDataAdapter da = new SqlDataAdapter(sql, conn);
                 DataTable dt = new DataTable();
                 da.Fill(dt);
                 return dt;
@@ -77,7 +77,7 @@ namespace PBL3.DataBase
             using (SqlConnection conn = GetConnection())
             {
                 conn.Open();
-                SqlCommand cmd = new SqlCommand(sql, conn);
+                using SqlCommand cmd = new SqlCommand(sql, conn);
                 return cmd.ExecuteNonQuery();
             }
         }

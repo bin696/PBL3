@@ -1,6 +1,7 @@
 ﻿using PBL3.DataBase;
 using System.Data;
 using System.Data.SqlClient;
+using System.Security.Cryptography;
 using System.Net;
 using System.Net.Mail;
 
@@ -29,6 +30,11 @@ namespace PBL3
 
             _otpTimer.Interval = 1000;
             _otpTimer.Tick += OtpTimer_Tick;
+            FormClosed += (_, _) =>
+            {
+                _otpTimer.Stop();
+                _otpTimer.Dispose();
+            };
         }
 
         private void ShowStep(int step)
@@ -212,8 +218,7 @@ namespace PBL3
             error = string.Empty;
             try
             {
-                Random rand = new Random();
-                _currentOtp = rand.Next(100000, 999999).ToString();
+                _currentOtp = RandomNumberGenerator.GetInt32(100000, 1000000).ToString();
                 _otpExpireAt = DateTime.Now.AddMinutes(5);
 
                 using var client = new SmtpClient("sandbox.smtp.mailtrap.io", 2525)
