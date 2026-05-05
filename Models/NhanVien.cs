@@ -1,6 +1,6 @@
 namespace PBL3.Models
 {
-    internal class NhanVien
+    public class NhanVien
     {
         public string MaNV { get; set; }
         public string HoTen { get; set; }

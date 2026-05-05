@@ -9,11 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Services\" />
-    <Folder Include="Repositories\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Include=".github\copilot-instructions.md" />
     <None Include="DataBase\App.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

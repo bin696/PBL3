@@ -6,10 +6,12 @@ namespace PBL3
     public partial class TrangDangNhap : Form
     {
         private bool _isLoggingIn;
+        private readonly PBL3.Services.AuthService _authService;
 
         public TrangDangNhap()
         {
             InitializeComponent();
+            _authService = new PBL3.Services.AuthService();
         }
 
         private void groupBox1_Enter(object sender, EventArgs e)
@@ -143,47 +145,27 @@ namespace PBL3
 
             try
             {
-                using (SqlConnection conn = DbHelper.GetConnection())
+                var nv = _authService.Authenticate(soDienThoai, matKhau);
+
+                if (nv != null)
                 {
-                    conn.Open();
+                    bool laAdmin = _authService.IsAdmin(nv);
 
-                    string query = @"
-                    SELECT nv.MaNV, nv.MaCV, cv.TenCV
-                    FROM dbo.NHAN_VIEN nv
-                    LEFT JOIN dbo.CHUC_VU cv ON cv.MaCV = nv.MaCV
-                    WHERE nv.SDT = @sdt AND nv.MatKhau = @mk";
+                    Form target = laAdmin
+                        ? new QuanLiNhanVien()
+                        : new TrangNhanVien1(nv.MaNV);
 
-                    using (SqlCommand cmd = new SqlCommand(query, conn))
-                    {
-                        cmd.Parameters.AddWithValue("@sdt", soDienThoai);
-                        cmd.Parameters.AddWithValue("@mk", matKhau);
+                    this.Hide();
+                    target.Show();
 
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            if (reader.Read())
-                            {
-                                string maChucVu = reader["MaCV"]?.ToString()?.Trim() ?? string.Empty;
-                                string maNV = reader["MaNV"]?.ToString()?.Trim() ?? string.Empty;
-                                bool laAdmin = maChucVu == "6" || maChucVu.Equals("CV06", StringComparison.OrdinalIgnoreCase);
-
-                                Form target = laAdmin
-                                    ? new QuanLiNhanVien()
-                                    : new TrangNhanVien1(maNV);
-
-                                this.Hide();
-                                target.Show();
-
-                                return;
-                            }
-                            else
-                            {
-                                MessageBox.Show("Sai số điện thoại hoặc mật khẩu!",
-                                                "Lỗi",
-                                                MessageBoxButtons.OK,
-                                                MessageBoxIcon.Error);
-                            }
-                        }
-                    }
+                    return;
+                }
+                else
+                {
+                    MessageBox.Show("Sai số điện thoại hoặc mật khẩu!",
+                                    "Lỗi",
+                                    MessageBoxButtons.OK,
+                                    MessageBoxIcon.Error);
                 }
             }
             catch (Exception ex)
